@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from './components/layout/Container';
 import { Header } from './components/layout/Header';
 import { SQLEditor } from './components/editor/SQLEditor';
 import { DiagramCanvas } from './components/diagram/DiagramCanvas';
 import { parseSQL } from './parser/sqlParser';
 import { downloadSchemaAsZip } from './utils/exportZip';
-import type { Schema } from './types/schema';
+import { Schema } from './types/schema';
 
 const DEFAULT_SQL = `CREATE TABLE users (
     id INT PRIMARY KEY,
@@ -20,22 +20,42 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );`;
 
+// Key for localStorage
+const STORAGE_KEY = 'sql-playground-content';
+
 function App() {
-  const [sql, setSql] = useState(DEFAULT_SQL);
+  // Load saved SQL from localStorage on startup
+  const [sql, setSql] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved || DEFAULT_SQL;
+  });
+  
   const [schema, setSchema] = useState<Schema>({ tables: [] });
 
+  // Parse SQL whenever it changes
   useEffect(() => {
     const parsed = parseSQL(sql);
     setSchema(parsed);
+  }, [sql]);
+
+  // Save to localStorage whenever SQL changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, sql);
   }, [sql]);
 
   const handleExport = () => {
     downloadSchemaAsZip(schema);
   };
 
+  const handleReset = () => {
+    if (confirm('Reset to default SQL? Your current work will be lost.')) {
+      setSql(DEFAULT_SQL);
+    }
+  };
+
   return (
     <Container>
-      <Header onExport={handleExport} />
+      <Header onExport={handleExport} onReset={handleReset} />
       
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - SQL Editor */}
