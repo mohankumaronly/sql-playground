@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import CodeEditor from '@uiw/react-textarea-code-editor';
+import CodeMirror from '@uiw/react-codemirror';
+import { sql } from '@codemirror/lang-sql';
+import { autocompletion } from '@codemirror/autocomplete';
+import { EditorView } from '@codemirror/view';
+import type { Extension } from '@codemirror/state';
 
 interface SQLEditorProps {
   value: string;
@@ -8,16 +12,103 @@ interface SQLEditorProps {
 
 const FONT_SIZE_KEY = 'sql-editor-font-size';
 
+// SQL Keywords for autocomplete
+const sqlKeywords = [
+  'SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'TABLE',
+  'ALTER', 'DROP', 'INDEX', 'VIEW', 'DATABASE', 'PRIMARY', 'KEY', 'FOREIGN',
+  'REFERENCES', 'NOT', 'NULL', 'UNIQUE', 'DEFAULT', 'CHECK', 'CONSTRAINT',
+  'INT', 'VARCHAR', 'TEXT', 'DATE', 'TIME', 'DATETIME', 'DECIMAL', 'FLOAT',
+  'AND', 'OR', 'IN', 'LIKE', 'BETWEEN', 'IS', 'JOIN', 'INNER', 'LEFT', 'RIGHT',
+  'ORDER', 'BY', 'GROUP', 'HAVING', 'LIMIT', 'OFFSET', 'UNION', 'ALL', 'DISTINCT'
+];
+
+// SQL syntax error patterns
+const checkSQLErrors = (sqlCode: string): string[] => {
+  const errors: string[] = [];
+  const upperCode = sqlCode.toUpperCase();
+  
+  // Check for unmatched parentheses
+  let parenCount = 0;
+  for (const char of sqlCode) {
+    if (char === '(') parenCount++;
+    if (char === ')') parenCount--;
+  }
+  if (parenCount !== 0) {
+    errors.push(`Unmatched parentheses: ${parenCount > 0 ? '(' : ')'} count mismatch`);
+  }
+  
+  // Check for incomplete CREATE TABLE
+  if (upperCode.includes('CREATE TABLE') && !upperCode.includes('(')) {
+    errors.push('Incomplete CREATE TABLE statement: missing parentheses');
+  }
+  
+  // Check for keywords that might indicate typos
+  const commonTypos = ['CREAT', 'TABEL', 'FROME', 'WHER', 'UPDAT', 'DELET'];
+  for (const typo of commonTypos) {
+    if (upperCode.includes(typo) && !upperCode.includes(typo + 'E')) {
+      errors.push(`Possible typo: '${typo}' - did you mean '${typo}E'?`);
+    }
+  }
+  
+  return errors;
+};
+
+// Auto-format SQL code
+const formatSQL = (sqlCode: string): string => {
+  const lines = sqlCode.split('\n');
+  const formatted: string[] = [];
+  let indentLevel = 0;
+  const indentSize = 2;
+  
+  for (let line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      formatted.push('');
+      continue;
+    }
+    
+    // Decrease indent for closing parentheses
+    if (trimmed.startsWith(')')) {
+      indentLevel = Math.max(0, indentLevel - 1);
+    }
+    
+    // Add indentation
+    const indent = ' '.repeat(indentLevel * indentSize);
+    formatted.push(indent + trimmed);
+    
+    // Increase indent for opening parentheses and certain keywords
+    if (trimmed.endsWith('(') || 
+        trimmed.toUpperCase().startsWith('CREATE') ||
+        (trimmed.toUpperCase().startsWith('SELECT') && !trimmed.toUpperCase().includes('INSERT'))) {
+      indentLevel++;
+    }
+    
+    // Decrease indent for closing statements
+    if (trimmed.endsWith(');') || trimmed.endsWith(';')) {
+      indentLevel = Math.max(0, indentLevel - 1);
+    }
+  }
+  
+  return formatted.join('\n');
+};
+
 export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem(FONT_SIZE_KEY);
     return saved ? parseInt(saved) : 14;
   });
   
-  // Track theme for editor styling
+  const [errors, setErrors] = useState<string[]>([]);
+  const [showErrors, setShowErrors] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
+
+  // Check for errors when value changes
+  useEffect(() => {
+    const sqlErrors = checkSQLErrors(value);
+    setErrors(sqlErrors);
+  }, [value]);
 
   useEffect(() => {
     localStorage.setItem(FONT_SIZE_KEY, fontSize.toString());
@@ -42,6 +133,11 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
 
   const resetFont = () => setFontSize(14);
 
+  const handleFormatCode = () => {
+    const formatted = formatSQL(value);
+    onChange(formatted);
+  };
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
   useEffect(() => {
@@ -50,9 +146,32 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Custom SQL autocomplete - Simplified version without dialect
+  const sqlExtensions: Extension[] = [
+    sql({
+      upperCaseKeywords: true,
+    }),
+    autocompletion({
+      override: [
+        (context) => {
+          const word = context.matchBefore(/\w+/);
+          if (!word) return null;
+          const options = sqlKeywords
+            .filter(kw => kw.toLowerCase().startsWith(word.text.toLowerCase()))
+            .map(kw => ({
+              label: kw,
+              type: 'keyword',
+              apply: kw,
+            }));
+          return { from: word.from, to: word.to, options };
+        },
+      ],
+    }),
+    EditorView.lineWrapping,
+  ];
+
   // Editor colors based on theme
   const editorBackground = isDark ? '#1a1a1a' : '#ffffff';
-  const editorTextColor = isDark ? '#e5e5e5' : '#1f2937';
 
   return (
     <div className="flex flex-col h-full">
@@ -60,14 +179,33 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
             SQL Editor
+            {errors.length > 0 && (
+              <span className="ml-2 text-xs text-red-500">
+                ⚠️ {errors.length} error(s)
+              </span>
+            )}
           </h2>
           
           <div className="flex items-center gap-1 sm:gap-2">
-            {!isMobile && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
-                Font:
-              </span>
-            )}
+            <button
+              onClick={handleFormatCode}
+              className="px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600
+                       hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400
+                       transition-colors touch-manipulation"
+              title="Format SQL Code"
+            >
+              Format
+            </button>
+            
+            <button
+              onClick={() => setShowErrors(!showErrors)}
+              className={`px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600
+                       transition-colors touch-manipulation ${errors.length > 0 ? 'text-red-500' : 'text-gray-600 dark:text-gray-400'}`}
+              title="Show Errors"
+            >
+              {showErrors ? 'Hide' : 'Show'} Errors
+            </button>
+            
             <button
               onClick={decreaseFont}
               className="w-7 h-7 sm:w-8 sm:h-8 rounded border border-gray-300 dark:border-gray-600 
@@ -79,7 +217,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
               </svg>
             </button>
             
-            <span className="text-xs sm:text-sm font-mono text-gray-700 dark:text-gray-300 min-w-8.75 sm:min-w-10 text-center">
+            <span className="text-xs sm:text-sm font-mono text-gray-700 dark:text-gray-300 min-w-[35px] sm:min-w-[40px] text-center">
               {fontSize}
             </span>
             
@@ -104,25 +242,59 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
             </button>
           </div>
         </div>
+        
+        {/* Error Panel */}
+        {showErrors && errors.length > 0 && (
+          <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-1">
+              SQL Errors:
+            </div>
+            <ul className="text-xs text-red-600 dark:text-red-300 space-y-1">
+              {errors.map((error, idx) => (
+                <li key={idx} className="font-mono">• {error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       
-      {/* REMOVED min-h-0 and added overflow-auto directly to the CodeEditor container */}
       <div className="flex-1 p-3 sm:p-4 overflow-auto">
-        <CodeEditor
+        <CodeMirror
           value={value}
-          language="sql"
-          placeholder="Write your SQL here..."
-          onChange={(evn) => onChange(evn.target.value)}
-          padding={12}
-          className="w-full font-mono border border-gray-200 dark:border-gray-700 rounded-lg"
+          height="100%"
+          extensions={sqlExtensions}
+          onChange={(val) => onChange(val)}
+          theme={isDark ? 'dark' : 'light'}
+          basicSetup={{
+            lineNumbers: true,
+            highlightActiveLineGutter: true,
+            highlightSpecialChars: true,
+            history: true,
+            foldGutter: true,
+            drawSelection: true,
+            dropCursor: true,
+            allowMultipleSelections: true,
+            indentOnInput: true,
+            syntaxHighlighting: true,
+            bracketMatching: true,
+            closeBrackets: true,
+            autocompletion: true,
+            rectangularSelection: true,
+            crosshairCursor: true,
+            highlightActiveLine: true,
+            highlightSelectionMatches: true,
+            closeBracketsKeymap: true,
+            defaultKeymap: true,
+            searchKeymap: true,
+            historyKeymap: true,
+            foldKeymap: true,
+            completionKeymap: true,
+            lintKeymap: true,
+          }}
           style={{
-            backgroundColor: editorBackground,
-            color: editorTextColor,
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             fontSize: `${fontSize}px`,
-            lineHeight: 1.5,
-            minHeight: '300px',
-            height: 'auto',
+            height: '100%',
+            overflow: 'auto',
           }}
         />
       </div>
