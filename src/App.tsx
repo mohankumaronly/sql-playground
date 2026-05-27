@@ -5,7 +5,7 @@ import { SQLEditor } from './components/editor/SQLEditor';
 import { DiagramCanvas } from './components/diagram/DiagramCanvas';
 import { parseSQL } from './parser/sqlParser';
 import { downloadSchemaAsZip } from './utils/exportZip';
-import { Schema } from './types/schema';
+import type { Schema } from './types/schema';
 
 const DEFAULT_SQL = `CREATE TABLE users (
     id INT PRIMARY KEY,
