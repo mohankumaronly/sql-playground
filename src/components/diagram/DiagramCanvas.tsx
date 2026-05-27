@@ -202,14 +202,14 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
             showZoom={true}
             showFitView={true}
             showInteractive={true}
-            className="!bg-white dark:!bg-gray-800 !rounded-lg !shadow-lg !border !border-gray-200 dark:!border-gray-700"
+            className="bg-white! dark:bg-gray-800! rounded-lg! shadow-lg! border! border-gray-200! dark:border-gray-700!"
           />
           <MiniMap 
             nodeColor={() => '#3b82f6'}
             nodeStrokeWidth={3}
             zoomable={true}
             pannable={true}
-            className="!bg-gray-100 dark:!bg-gray-800 !rounded-lg !border !border-gray-200 dark:!border-gray-700"
+            className="bg-gray-100! dark:bg-gray-800! rounded-lg! border! border-gray-200! dark:border-gray-700!"
           />
           <Panel position="top-right">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg px-3 py-1 text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
