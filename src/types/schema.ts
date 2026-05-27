@@ -13,6 +13,7 @@ export interface Column {
 export interface Table {
   name: string;
   columns: Column[];
+  position?: { x: number; y: number };
 }
 
 export interface Schema {

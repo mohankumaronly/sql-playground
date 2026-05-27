@@ -18,13 +18,26 @@ CREATE TABLE orders (
     user_id INT,
     total DECIMAL(10,2),
     FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE products (
+    id INT PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    price DECIMAL(10,2)
+);
+
+CREATE TABLE order_items (
+    id INT PRIMARY KEY,
+    order_id INT,
+    product_id INT,
+    quantity INT NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
 );`;
 
-// Key for localStorage
 const STORAGE_KEY = 'sql-playground-content';
 
 function App() {
-  // Load saved SQL from localStorage on startup
   const [sql, setSql] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved || DEFAULT_SQL;
@@ -32,13 +45,11 @@ function App() {
   
   const [schema, setSchema] = useState<Schema>({ tables: [] });
 
-  // Parse SQL whenever it changes
   useEffect(() => {
     const parsed = parseSQL(sql);
     setSchema(parsed);
   }, [sql]);
 
-  // Save to localStorage whenever SQL changes
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, sql);
   }, [sql]);
@@ -63,7 +74,7 @@ function App() {
           <SQLEditor value={sql} onChange={setSql} />
         </div>
 
-        {/* Right Panel - Diagram */}
+        {/* Right Panel - Flow Diagram */}
         <div className="w-1/2">
           <DiagramCanvas tables={schema.tables} />
         </div>
