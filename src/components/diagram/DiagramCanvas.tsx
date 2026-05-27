@@ -147,9 +147,11 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
   }, []);
   
   return (
-    <div className="flex flex-col h-full">
-      <div className="border-b border-gray-200 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-950">
-        <div className="flex items-center justify-between">
+    // CHANGED: Made this div take full height and width with proper constraints
+    <div className="flex flex-col h-full w-full min-h-0">
+      {/* CHANGED: Made header sticky for mobile scrolling */}
+      <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-950">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Database Diagram
             {tables.length > 0 && (
@@ -180,7 +182,8 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
         </div>
       </div>
       
-      <div className="flex-1">
+      {/* CHANGED: Added min-h-0 and flex-1 for proper scrolling */}
+      <div className="flex-1 min-h-0">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -202,14 +205,14 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
             showZoom={true}
             showFitView={true}
             showInteractive={true}
-            className="bg-white! dark:bg-gray-800! rounded-lg! shadow-lg! border! border-gray-200! dark:border-gray-700!"
+            className="!bg-white !dark:bg-gray-800 !rounded-lg !shadow-lg !border !border-gray-200 !dark:border-gray-700"
           />
           <MiniMap 
             nodeColor={() => '#3b82f6'}
             nodeStrokeWidth={3}
             zoomable={true}
             pannable={true}
-            className="bg-gray-100! dark:bg-gray-800! rounded-lg! border! border-gray-200! dark:border-gray-700!"
+            className="!bg-gray-100 !dark:bg-gray-800 !rounded-lg !border !border-gray-200 !dark:border-gray-700"
           />
           <Panel position="top-right">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg px-3 py-1 text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">

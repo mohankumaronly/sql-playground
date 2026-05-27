@@ -6,70 +6,88 @@ interface SQLEditorProps {
   onChange: (value: string) => void;
 }
 
-// Key for localStorage
 const FONT_SIZE_KEY = 'sql-editor-font-size';
 
 export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
-  // Load saved font size or default to 14
   const [fontSize, setFontSize] = useState(() => {
     const saved = localStorage.getItem(FONT_SIZE_KEY);
     return saved ? parseInt(saved) : 14;
   });
+  
+  // Track theme for editor styling
+  const [isDark, setIsDark] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  });
 
-  // Save font size to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(FONT_SIZE_KEY, fontSize.toString());
   }, [fontSize]);
 
+  // Watch for theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true });
+    return () => observer.disconnect();
+  }, []);
+
   const increaseFont = () => {
-    if (fontSize < 24) {
-      setFontSize(fontSize + 1);
-    }
+    if (fontSize < 24) setFontSize(fontSize + 1);
   };
 
   const decreaseFont = () => {
-    if (fontSize > 10) {
-      setFontSize(fontSize - 1);
-    }
+    if (fontSize > 10) setFontSize(fontSize - 1);
   };
 
-  const resetFont = () => {
-    setFontSize(14);
-  };
+  const resetFont = () => setFontSize(14);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Editor colors based on theme
+  const editorBackground = isDark ? '#1a1a1a' : '#ffffff';
+  const editorTextColor = isDark ? '#e5e5e5' : '#1f2937';
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b border-gray-200 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-950">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 px-3 sm:px-4 py-2 bg-gray-50 dark:bg-gray-950">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
             SQL Editor
           </h2>
           
-          {/* Font Size Controls */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Font Size:</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            {!isMobile && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
+                Font:
+              </span>
+            )}
             <button
               onClick={decreaseFont}
-              className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded border border-gray-300 dark:border-gray-600 
                        hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300
-                       flex items-center justify-center"
-              aria-label="Decrease font size"
+                       flex items-center justify-center touch-manipulation"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
               </svg>
             </button>
             
-            <span className="text-sm font-mono text-gray-700 dark:text-gray-300 min-w-10 text-center">
-              {fontSize}px
+            <span className="text-xs sm:text-sm font-mono text-gray-700 dark:text-gray-300 min-w-[35px] sm:min-w-[40px] text-center">
+              {fontSize}
             </span>
             
             <button
               onClick={increaseFont}
-              className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded border border-gray-300 dark:border-gray-600 
                        hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300
-                       flex items-center justify-center"
-              aria-label="Increase font size"
+                       flex items-center justify-center touch-manipulation"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -78,9 +96,9 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
             
             <button
               onClick={resetFont}
-              className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600
+              className="text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 rounded border border-gray-300 dark:border-gray-600
                        hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400
-                       transition-colors"
+                       transition-colors touch-manipulation"
             >
               Reset
             </button>
@@ -88,33 +106,23 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
         </div>
       </div>
       
-      <div className="flex-1 p-4">
+      {/* REMOVED min-h-0 and added overflow-auto directly to the CodeEditor container */}
+      <div className="flex-1 p-3 sm:p-4 overflow-auto">
         <CodeEditor
           value={value}
           language="sql"
-          placeholder={`Write your SQL here...
-
-Example:
-CREATE TABLE users (
-    id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE
-);
-
-CREATE TABLE orders (
-    order_id INT PRIMARY KEY,
-    user_id INT,
-    total DECIMAL(10,2),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);`}
+          placeholder="Write your SQL here..."
           onChange={(evn) => onChange(evn.target.value)}
-          padding={15}
-          className="h-full font-mono border border-gray-200 dark:border-gray-700 rounded-lg overflow-auto"
+          padding={12}
+          className="w-full font-mono border border-gray-200 dark:border-gray-700 rounded-lg"
           style={{
-            backgroundColor: 'var(--bg-color)',
+            backgroundColor: editorBackground,
+            color: editorTextColor,
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             fontSize: `${fontSize}px`,
             lineHeight: 1.5,
+            minHeight: '300px',
+            height: 'auto',
           }}
         />
       </div>

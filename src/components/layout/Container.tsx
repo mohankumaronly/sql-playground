@@ -6,7 +6,7 @@ interface ContainerProps {
 
 export const Container: React.FC<ContainerProps> = ({ children }) => {
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex flex-col h-screen w-screen overflow-hidden">
       {children}
     </div>
   );
