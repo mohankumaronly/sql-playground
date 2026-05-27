@@ -15,7 +15,7 @@ export const TableNode: React.FC<TableNodeProps> = ({ data, selected }) => {
   const { table } = data;
   
   return (
-    <div className={`rounded-lg shadow-lg bg-white dark:bg-gray-900 border-2 ${selected ? 'border-blue-500' : 'border-gray-300 dark:border-gray-700'} min-w-[240px]`}>
+    <div className={`rounded-lg shadow-lg bg-white dark:bg-gray-900 border-2 ${selected ? 'border-blue-500' : 'border-gray-300 dark:border-gray-700'} min-w-60`}>
       {/* Table Header */}
       <div className="bg-gray-100 dark:bg-gray-800 px-3 py-2 font-bold border-b border-gray-300 dark:border-gray-700 rounded-t-lg">
         <div className="flex items-center gap-2">
