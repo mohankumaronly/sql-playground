@@ -1,3 +1,12 @@
+import React from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import type { Table } from '../../types/schema';
+
+interface TableCardProps {
+  table: Table;
+}
+
 export const TableCard: React.FC<TableCardProps> = ({ table }) => {
   const {
     attributes,
@@ -9,7 +18,7 @@ export const TableCard: React.FC<TableCardProps> = ({ table }) => {
   } = useSortable({ id: table.name });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
