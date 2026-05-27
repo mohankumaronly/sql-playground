@@ -60,7 +60,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
               </svg>
             </button>
             
-            <span className="text-sm font-mono text-gray-700 dark:text-gray-300 min-w-[40px] text-center">
+            <span className="text-sm font-mono text-gray-700 dark:text-gray-300 min-w-10 text-center">
               {fontSize}px
             </span>
             
