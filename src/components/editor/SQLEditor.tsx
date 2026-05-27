@@ -1,4 +1,5 @@
 import React from 'react';
+import CodeEditor from '@uiw/react-textarea-code-editor';
 
 interface SQLEditorProps {
   value: string;
@@ -14,12 +15,31 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
         </h2>
       </div>
       <div className="flex-1 p-4">
-        <textarea
-          className="w-full h-full font-mono text-sm p-4 border border-gray-200 dark:border-gray-700 rounded-lg 
-                     bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          placeholder="Write your SQL here...&#10;&#10;Example:&#10;CREATE TABLE users (&#10;    id INT PRIMARY KEY,&#10;    name VARCHAR(100) NOT NULL,&#10;    email VARCHAR(255) UNIQUE&#10;);&#10;&#10;CREATE TABLE orders (&#10;    order_id INT PRIMARY KEY,&#10;    user_id INT,&#10;    total DECIMAL(10,2),&#10;    FOREIGN KEY (user_id) REFERENCES users(id)&#10;);"
+        <CodeEditor
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          language="sql"
+          placeholder={`Write your SQL here...
+
+Example:
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE
+);
+
+CREATE TABLE orders (
+    order_id INT PRIMARY KEY,
+    user_id INT,
+    total DECIMAL(10,2),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);`}
+          onChange={(evn) => onChange(evn.target.value)}
+          padding={15}
+          className="h-full font-mono text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-auto"
+          style={{
+            backgroundColor: 'var(--bg-color)',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+          }}
         />
       </div>
     </div>
