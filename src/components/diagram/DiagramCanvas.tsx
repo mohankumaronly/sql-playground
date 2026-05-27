@@ -14,7 +14,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Table } from '../../types/schema';
+import type { Table } from '../../types/schema';
 import { TableCard } from './TableCard';
 
 interface DiagramCanvasProps {
