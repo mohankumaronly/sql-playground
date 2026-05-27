@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Container } from './components/layout/Container';
 import { Header } from './components/layout/Header';
 import { SQLEditor } from './components/editor/SQLEditor';
