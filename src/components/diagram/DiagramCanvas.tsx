@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -7,6 +7,7 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
   Panel,
+  MarkerType,
 } from 'reactflow';
 import type { Node, Edge, Connection } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -33,13 +34,36 @@ const createEdges = (tables: Table[]): Edge[] => {
     table.columns.forEach((column) => {
       if (column.references) {
         edges.push({
-          id: `${table.name}-${column.references.table}`,
+          id: `${table.name}-${column.references.table}-${column.name}`,
           source: table.name,
           target: column.references.table,
+          sourceHandle: `${table.name}-${column.name}-source`,
+          targetHandle: `${column.references.table}-${column.references.column}-target`,
           label: column.name,
+          type: 'smoothstep',
           animated: true,
-          style: { stroke: '#8b5cf6', strokeWidth: 2 },
-          labelStyle: { fill: '#8b5cf6', fontSize: 10 },
+          style: { 
+            stroke: '#8b5cf6', 
+            strokeWidth: 3,
+          },
+          labelStyle: { 
+            fill: '#8b5cf6', 
+            fontSize: 11,
+            fontWeight: 'bold',
+          },
+          labelBgStyle: {
+            fill: 'white',
+            fillOpacity: 0.9,
+            rx: 4,
+            ry: 4,
+          },
+          labelBgPadding: [4, 2],
+          labelBgBorderRadius: 4,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#8b5cf6',
+          },
+          zIndex: 10,
         });
       }
     });
@@ -166,15 +190,35 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
           nodeTypes={nodeTypes}
           fitView
           attributionPosition="bottom-left"
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            animated: true,
+            style: { stroke: '#8b5cf6', strokeWidth: 3 },
+          }}
         >
-          <Background color="#aaa" gap={16} />
-          <Controls />
+          <Background color="#aaa" gap={16} size={1} />
+          <Controls 
+            position="bottom-right"
+            showZoom={true}
+            showFitView={true}
+            showInteractive={true}
+            className="!bg-white dark:!bg-gray-800 !rounded-lg !shadow-lg !border !border-gray-200 dark:!border-gray-700"
+          />
           <MiniMap 
             nodeColor={() => '#3b82f6'}
+            nodeStrokeWidth={3}
+            zoomable={true}
+            pannable={true}
+            className="!bg-gray-100 dark:!bg-gray-800 !rounded-lg !border !border-gray-200 dark:!border-gray-700"
           />
           <Panel position="top-right">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg px-3 py-1 text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
               🔍 Scroll to zoom | Drag to pan | Drag tables to reposition
+            </div>
+          </Panel>
+          <Panel position="bottom-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg px-3 py-1 text-xs text-purple-600 dark:text-purple-400 border border-gray-200 dark:border-gray-700">
+              🔗 Purple lines show Foreign Key relationships
             </div>
           </Panel>
         </ReactFlow>
