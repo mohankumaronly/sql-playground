@@ -138,7 +138,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
     onChange(formatted);
   };
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [, setIsMobile] = useState(window.innerWidth < 768);
   
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -169,9 +169,6 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
     }),
     EditorView.lineWrapping,
   ];
-
-  // Editor colors based on theme
-  const editorBackground = isDark ? '#1a1a1a' : '#ffffff';
 
   return (
     <div className="flex flex-col h-full">
@@ -217,7 +214,7 @@ export const SQLEditor: React.FC<SQLEditorProps> = ({ value, onChange }) => {
               </svg>
             </button>
             
-            <span className="text-xs sm:text-sm font-mono text-gray-700 dark:text-gray-300 min-w-[35px] sm:min-w-[40px] text-center">
+            <span className="text-xs sm:text-sm font-mono text-gray-700 dark:text-gray-300 min-w-8.75 sm:min-w-10 text-center">
               {fontSize}
             </span>
             

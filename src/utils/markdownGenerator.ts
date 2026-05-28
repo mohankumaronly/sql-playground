@@ -9,14 +9,13 @@ export function generateMarkdown(schema: Schema): string {
   markdown += `**Total Tables:** ${tables.length}\n\n`;
   markdown += `---\n\n`;
   
-  // Table of Contents
+
   markdown += `## 📑 Table of Contents\n\n`;
   tables.forEach(table => {
     markdown += `- [${table.name}](#${table.name.toLowerCase()})\n`;
   });
   markdown += `\n---\n\n`;
-  
-  // Each table
+
   tables.forEach(table => {
     markdown += `## 📋 ${table.name}\n\n`;
     markdown += `| Column | Type | Constraints | Foreign Key |\n`;
@@ -34,7 +33,7 @@ export function generateMarkdown(schema: Schema): string {
     markdown += `\n`;
   });
   
-  // Relationships Summary
+
   markdown += `## 🔗 Relationships\n\n`;
   const relationships = tables.flatMap(table =>
     table.columns
@@ -68,8 +67,8 @@ export function generateSQL(schema: Schema): string {
     });
     
     sql += columnDefs.join(',\n');
+  
     
-    // Add foreign key constraints at bottom
     const foreignKeys = table.columns.filter(col => col.references);
     foreignKeys.forEach(fk => {
       sql += `,\n    FOREIGN KEY (${fk.name}) REFERENCES ${fk.references!.table}(${fk.references!.column})`;

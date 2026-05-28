@@ -109,8 +109,7 @@ function App() {
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
-
-  // Show landing page for first-time visitors
+  
   if (showLanding) {
     return <LandingPage onGetStarted={handleGetStarted} />;
   }

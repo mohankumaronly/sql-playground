@@ -18,7 +18,6 @@ interface DiagramCanvasProps {
   tables: Table[];
 }
 
-// Convert table to React Flow node
 const tableToNode = (table: Table, index: number): Node => ({
   id: table.name,
   type: 'tableNode',
@@ -26,7 +25,6 @@ const tableToNode = (table: Table, index: number): Node => ({
   data: { table },
 });
 
-// Create edges (lines) between tables based on foreign keys
 const createEdges = (tables: Table[]): Edge[] => {
   const edges: Edge[] = [];
   
@@ -72,22 +70,20 @@ const createEdges = (tables: Table[]): Edge[] => {
   return edges;
 };
 
-// Register custom node type
+
 const nodeTypes = {
   tableNode: TableNode,
 };
 
 export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
-  // Convert tables to nodes
   const initialNodes = tables.map((table, idx) => tableToNode(table, idx));
   const initialEdges = createEdges(tables);
   
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   
-  // Update nodes and edges when tables change
+
   useEffect(() => {
-    // Preserve existing positions
     const existingPositions = new Map(
       nodes.map((node) => [node.id, node.position])
     );
@@ -112,7 +108,6 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
   );
   
   const onSaveLayout = useCallback(() => {
-    // Save positions to localStorage
     const positions = nodes.map((node) => ({
       id: node.id,
       position: node.position,
@@ -121,7 +116,6 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
   }, [nodes]);
   
   const onResetLayout = useCallback(() => {
-    // Reset positions
     const newNodes = nodes.map((node, idx) => ({
       ...node,
       position: { x: 250, y: idx * 200 },
@@ -130,7 +124,6 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
     localStorage.removeItem('table-positions');
   }, [nodes, setNodes]);
   
-  // Load saved positions on mount
   useEffect(() => {
     const saved = localStorage.getItem('table-positions');
     if (saved) {
@@ -147,9 +140,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
   }, []);
   
   return (
-    // CHANGED: Made this div take full height and width with proper constraints
     <div className="flex flex-col h-full w-full min-h-0">
-      {/* CHANGED: Made header sticky for mobile scrolling */}
       <div className="sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-950">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -181,8 +172,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({ tables }) => {
           </div>
         </div>
       </div>
-      
-      {/* CHANGED: Added min-h-0 and flex-1 for proper scrolling */}
+
       <div className="flex-1 min-h-0">
         <ReactFlow
           nodes={nodes}

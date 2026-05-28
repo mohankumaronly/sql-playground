@@ -2,8 +2,7 @@ import type { Schema, Table, Column } from '../types/schema';
 
 export function parseSQL(sql: string): Schema {
   const tables: Table[] = [];
-  
-  // Regular expression to find CREATE TABLE statements
+
   const createTableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)\s*\(([\s\S]*?)\)\s*;/gi;
   
   let match;
@@ -13,17 +12,14 @@ export function parseSQL(sql: string): Schema {
     
     const columns: Column[] = [];
     
-    // Split columns by comma, but ignore commas inside parentheses
     const columnLines = splitColumns(columnsDefinition);
     
     for (const line of columnLines) {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue;
-      
-      // Skip PRIMARY KEY constraints at table level
+
       if (trimmedLine.toUpperCase().startsWith('PRIMARY KEY')) continue;
-      
-      // Check for FOREIGN KEY constraint
+
       const foreignKeyMatch = trimmedLine.match(/FOREIGN\s+KEY\s*\((\w+)\)\s*REFERENCES\s*(\w+)\s*\((\w+)\)/i);
       if (foreignKeyMatch) {
         const columnName = foreignKeyMatch[1];
@@ -38,7 +34,6 @@ export function parseSQL(sql: string): Schema {
         continue;
       }
       
-      // Parse normal column definition
       const columnMatch = trimmedLine.match(/^(\w+)\s+(\w+(?:\([^)]+\))?)\s*(.*)$/i);
       if (columnMatch) {
         const columnName = columnMatch[1];

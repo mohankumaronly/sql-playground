@@ -16,7 +16,7 @@ export const TableNode: React.FC<TableNodeProps> = ({ data, selected }) => {
   
   return (
     <div className={`rounded-lg shadow-lg bg-white dark:bg-gray-900 border-2 ${selected ? 'border-blue-500' : 'border-gray-300 dark:border-gray-700'} min-w-60`}>
-      {/* Table Header */}
+      
       <div className="bg-gray-100 dark:bg-gray-800 px-3 py-2 font-bold border-b border-gray-300 dark:border-gray-700 rounded-t-lg">
         <div className="flex items-center gap-2">
           <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,8 +27,7 @@ export const TableNode: React.FC<TableNodeProps> = ({ data, selected }) => {
           </span>
         </div>
       </div>
-      
-      {/* Table Columns */}
+
       <div className="divide-y divide-gray-200 dark:divide-gray-800">
         {table.columns.map((col, idx) => (
           <div key={idx} className="px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors relative">
@@ -66,8 +65,7 @@ export const TableNode: React.FC<TableNodeProps> = ({ data, selected }) => {
                   </span>
                 )}
               </div>
-              
-              {/* Right Handle for outgoing connections (if this column is a foreign key) */}
+
               {col.references && (
                 <Handle
                   type="source"

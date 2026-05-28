@@ -10,22 +10,21 @@ export async function downloadSchemaAsZip(schema: Schema): Promise<void> {
 
   const zip = new JSZip();
   
-  // Generate SQL file
+
   const sqlContent = generateSQL(schema);
   zip.file('schema.sql', sqlContent);
   
-  // Generate Markdown documentation
+
   const markdownContent = generateMarkdown(schema);
   zip.file('README.md', markdownContent);
   
-  // Generate JSON export for reference
+
   const jsonContent = JSON.stringify(schema, null, 2);
   zip.file('schema.json', jsonContent);
   
-  // Generate ZIP file
+
   const blob = await zip.generateAsync({ type: 'blob' });
-  
-  // Download ZIP
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
